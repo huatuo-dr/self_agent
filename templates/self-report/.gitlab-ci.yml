@@ -1,0 +1,11 @@
+pages:
+  image: python:3.12-alpine
+  stage: deploy
+  script:
+    - python3 -m unittest discover -s tests -v
+    - python3 scripts/build_pages.py
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

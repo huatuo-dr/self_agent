@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.local/
+__pycache__/
+.venv/
+.project/
+config/owner-profile.json
+config/workday-calendar.json
+docs/superpowers/

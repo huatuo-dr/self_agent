@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="通用 AI 讨论方案模板：自包含 HTML、深色主题、侧边目录与常用图文组件。">
+  <title>讨论方案模板 · AI 助手</title>
+  <style>
+/* 通用组件样式；内嵌保存，复制本文件即可使用。 */
+
+/* ============================================================
+ * 1. tokens —— 改一个变量,全站生效
+ * ============================================================ */
+:root{
+  /* 背景 / 卡片 */
+  --bg:#ffffff; --bg-subtle:#f7f8fa; --card:#ffffff; --card-hover:#fbfcfe;
+  /* 边框 */
+  --border:#e6e8ec; --border-strong:#d2d6dd;
+  /* 文本三级灰阶 */
+  --text:#1a1f29; --text-2:#525a68; --text-3:#8a93a2;
+  /* 主强调色 */
+  --accent:#5b5bd6; --accent-2:#6e56cf; --accent-soft:#eef0fe; --accent-ring:#c7c9f7;
+  /* 交互语义色(请求/响应/上报/状态) */
+  --c-request:#2f6feb; --c-response:#16a34a; --c-report:#d97706; --c-status:#6b7280;
+  /* 数据模型节点色(endpoint/cluster/attr/cmd/event) */
+  --n-endpoint:#2f6feb; --n-cluster:#6e56cf; --n-attr:#16a34a; --n-cmd:#d97706; --n-event:#dc2626;
+  /* 语义色 soft 填充 / 描边 —— SVG 图与 chip 共用,单一真源(改一处全站统一) */
+  --c-request-soft:#eaf1fe;  --c-request-line:#cfe0fd;
+  --c-response-soft:#e9f7ef; --c-response-line:#c9ecd6;
+  --c-report-soft:#fdf2e3;   --c-report-line:#f6e0bd;
+  --c-status-soft:#f0f1f3;   --c-status-line:#dfe2e7;
+  --n-cluster-soft:#f1ecfb;  --n-cluster-line:#d9cdf3;
+  --n-endpoint-soft:#eef4ff; --n-endpoint-line:#bcd2fb;
+  --n-event-soft:#fbe9e9;    --n-event-line:#f3cccc;
+  /* 状态色 */
+  --ok:#16a34a; --warn:#d97706; --err:#dc2626;
+  /* 阴影 */
+  --sh-1:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  --sh-2:0 4px 12px rgba(16,24,40,.08);
+  --sh-pop:0 8px 28px rgba(16,24,40,.14);
+  /* 圆角 / 容器宽 */
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --maxw:1120px;
+  /* 字体栈(含中日韩) */
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",Roboto,sans-serif;
+  --font-mono:"SF Mono",ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,Consolas,"Liberation Mono",monospace;
+}
+
+/* ============================================================
+ * 2. reset + 基础排版
+ * ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-anchor:none}
+body{font-family:var(--font-sans);color:var(--text);background:var(--bg);line-height:1.65;
+  font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4{line-height:1.25;font-weight:650;color:var(--text)}
+h1{font-size:30px;letter-spacing:-.02em;margin-bottom:8px}
+h2{font-size:26px;letter-spacing:-.01em;margin-bottom:6px}
+h3{font-size:18px;margin:0 0 10px}
+h4{font-size:15px;margin:0 0 6px}
+p{color:var(--text-2)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--text-3)}
+.lead{font-size:15.5px;color:var(--text-2);max-width:62ch}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+section{scroll-margin-top:80px}
+ul,ol{padding-left:20px;color:var(--text-2)}
+li{margin:3px 0}
+strong,b{font-weight:680;color:var(--text)}
+
+/* ============================================================
+ * 3. 文档外壳:顶栏 / 标签页 / 主网格 / 右侧 TOC
+ * ============================================================ */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);
+  backdrop-filter:saturate(180%) blur(10px);-webkit-backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--border)}
+.topbar__inner{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:18px;
+  padding:0 22px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:680;letter-spacing:-.01em;white-space:nowrap}
+.brand__logo{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;box-shadow:var(--sh-1)}
+.brand small{color:var(--text-3);font-weight:500;font-size:12px}
+.tabs{display:flex;gap:2px;overflow-x:auto;flex:1;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{appearance:none;border:0;background:transparent;font-family:inherit;font-size:13.5px;
+  color:var(--text-2);padding:8px 13px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;
+  position:relative;font-weight:550;transition:color .15s,background .15s}
+.tab-btn:hover{color:var(--text);background:var(--bg-subtle)}
+.tab-btn.is-active{color:var(--accent)}
+.tab-btn.is-active::after{content:"";position:absolute;left:11px;right:11px;bottom:-1px;height:2px;
+  background:var(--accent);border-radius:2px}
+.ver{font-family:var(--font-mono);font-size:11.5px;color:var(--text-3);background:var(--bg-subtle);
+  border:1px solid var(--border);padding:2px 8px;border-radius:var(--r-pill);white-space:nowrap}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:38px 22px 90px;display:grid;
+  grid-template-columns:1fr 200px;gap:40px;align-items:start}
+.panel-head{grid-column:1 / -1;margin-bottom:6px}
+.content{min-width:0}
+.toc{position:sticky;top:80px;display:flex;flex-direction:column;gap:2px;
+  border-left:1px solid var(--border);padding-left:14px}
+.toc a{font-size:12.5px;color:var(--text-3);padding:3px 0;border-radius:4px;transition:color .12s}
+.toc a:hover{color:var(--text-2);text-decoration:none}
+.toc a.is-active{color:var(--accent);font-weight:600}
+.toc a[data-toc-level="1"]{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);
+  color:var(--text-2);font-size:12px;font-weight:700}
+.toc a[data-toc-level="1"]:first-child{margin-top:0;padding-top:3px;border-top:0}
+.toc a[data-toc-level="2"]{padding-left:12px}
+.toc a[data-toc-level="3"]{padding-left:24px;font-size:12px}
+.tab-panel[hidden]{display:none}
+
+/* ============================================================
+ * 4. 通用组件
+ * ============================================================ */
+.section{margin-top:46px}
+.section:first-child{margin-top:8px}
+
+/* 卡片 + 网格 */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:20px 22px;box-shadow:var(--sh-1)}
+.card.pad-lg{padding:26px 28px}
+.grid{display:grid;gap:16px}
+.grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+
+/* 左侧强调条卡片 */
+.feature-card{position:relative;padding-left:14px}
+.feature-card::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;border-radius:3px;
+  background:var(--accent)}
+
+/* chip:小标记,带交互语义变体 */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;
+  padding:2px 9px;border-radius:var(--r-pill);background:var(--bg-subtle);border:1px solid var(--border);
+  color:var(--text-2);font-weight:600;white-space:nowrap}
+.chip.req{color:var(--c-request);background:var(--c-request-soft);border-color:var(--c-request-line)}
+.chip.res{color:var(--c-response);background:var(--c-response-soft);border-color:var(--c-response-line)}
+.chip.rep{color:var(--c-report);background:var(--c-report-soft);border-color:var(--c-report-line)}
+.chip.sta{color:var(--c-status);background:var(--c-status-soft);border-color:var(--c-status-line)}
+
+/* tag:状态徽标 */
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:var(--r-pill);letter-spacing:.02em}
+.tag.ok{color:#0d7a33;background:#e3f6ea}
+.tag.no{color:#9a2820;background:#fbe6e3}
+.tag.maybe{color:#92560a;background:#fbefda}
+
+/* 按钮 */
+.btn{appearance:none;font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--border-strong);
+  background:#fff;color:var(--text);padding:7px 13px;border-radius:var(--r-sm);cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;transition:.12s}
+.btn:hover{background:var(--bg-subtle);border-color:var(--text-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#4d4dc4}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);background:var(--bg-subtle)}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--accent-soft)}
+.table-card{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-1)}
+.table-card table{margin:0}
+
+/* note:信息框 */
+.note{font-size:13px;color:var(--text-2);background:var(--bg-subtle);border:1px solid var(--border);
+  border-left:3px solid var(--accent);border-radius:var(--r-sm);padding:10px 14px}
+.note.warn{border-left-color:var(--warn)}
+.note.err{border-left-color:var(--err)}
+.note.ok{border-left-color:var(--ok)}
+
+/* kv:键值对定义列表 */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}
+.kv dt{color:var(--text-3);font-family:var(--font-mono);font-size:12px}
+.kv dd{color:var(--text)}
+
+/* codeblock:默认浅色代码块 + 高亮 token + 复制按钮(由 doc.js 注入)。
+ * 需要深色块时给 <pre class="codeblock dark"> 加 .dark。 */
+.codeblock{position:relative;font-family:var(--font-mono);font-size:12.5px;background:var(--bg-subtle);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;overflow-x:auto;line-height:1.7}
+.codeblock .c{color:var(--text-3)}  /* 注释 */
+.codeblock .k{color:#6e56cf}        /* 关键字 */
+.codeblock .n{color:#c2410c}        /* 数字/字面量 */
+.codeblock .s{color:#0d7a33}        /* 字符串 */
+.codeblock .copy-btn{position:absolute;top:8px;right:8px;appearance:none;border:1px solid var(--border-strong);
+  background:#fff;color:var(--text-2);font-family:var(--font-sans);font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:var(--r-sm);cursor:pointer;opacity:0;transition:.14s}
+.codeblock:hover .copy-btn{opacity:1}
+.codeblock .copy-btn:hover{background:var(--bg-subtle);color:var(--text)}
+.codeblock .copy-btn.copied{color:#0d7a33;border-color:#9bcfae}
+
+/* 深色变体(可选) */
+.codeblock.dark{background:#0f1320;color:#d7dcea;border-color:#1f2436}
+.codeblock.dark .c{color:#7c8499}
+.codeblock.dark .k{color:#9db4ff}
+.codeblock.dark .n{color:#e6b673}
+.codeblock.dark .s{color:#8fd6a0}
+.codeblock.dark .copy-btn{border-color:rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#aeb6cc}
+.codeblock.dark .copy-btn:hover{background:rgba(255,255,255,.14);color:#fff}
+.codeblock.dark .copy-btn.copied{color:#8fd6a0;border-color:#3a6b48}
+
+/* 三栏对比 */
+.cmp3{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden}
+.cmp3>div{padding:16px 18px;border-right:1px solid var(--border)}
+.cmp3>div:last-child{border-right:0}
+.cmp3 h4{display:flex;align-items:center;gap:8px}
+.cmp3 .badge{width:10px;height:10px;border-radius:3px}
+.cmp3 ul{list-style:none;font-size:12.5px;color:var(--text-2);padding:0}
+.cmp3 ul li{padding:3px 0;display:flex;gap:7px}
+.cmp3 ul li::before{content:"›";color:var(--text-3)}
+
+/* 手风琴(可折叠) —— 由 doc.js 驱动开合 */
+.acc{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.acc__item{border-bottom:1px solid var(--border)}
+.acc__item:last-child{border-bottom:0}
+.acc__h{width:100%;text-align:left;appearance:none;border:0;background:#fff;font-family:inherit;font-size:14px;
+  font-weight:650;color:var(--text);padding:13px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.acc__h:hover{background:var(--bg-subtle)}
+.acc__h .pm{color:var(--accent);font-weight:700;font-size:18px;transition:transform .15s}
+.acc__item.open .pm{transform:rotate(45deg)}
+.acc__body{max-height:0;overflow:hidden;transition:max-height .2s ease;background:var(--bg-subtle)}
+.acc__body-inner{padding:4px 16px 16px;font-size:13px;color:var(--text-2)}
+
+/* hero:首屏大标题块 */
+.hero{background:linear-gradient(135deg,#f5f6ff 0%,#fbf8ff 50%,#f3fbf6 100%);
+  border:1px solid var(--border);border-radius:18px;padding:34px 32px;margin-bottom:8px}
+.hero h1,.hero h2{font-size:30px;letter-spacing:-.02em}
+.hero .sub{font-size:16px;color:var(--text-2);margin-top:10px;max-width:64ch}
+.hero .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pill{font-size:12.5px;font-weight:600;background:#fff;border:1px solid var(--border);border-radius:var(--r-pill);
+  padding:5px 13px;color:var(--text-2);box-shadow:var(--sh-1)}
+
+/* footer */
+footer{border-top:1px solid var(--border);background:var(--bg-subtle)}
+footer .fi{max-width:var(--maxw);margin:0 auto;padding:26px 22px;font-size:12.5px;color:var(--text-3);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ============================================================
+ * 5. 响应式
+ * ============================================================ */
+@media(max-width:960px){
+  .wrap{grid-template-columns:1fr}
+  .toc{display:none}
+  .grid.cols-2,.grid.cols-3,.grid.cols-4,.cmp3{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .hero{padding:24px 20px}
+  h1,.hero h1,.hero h2{font-size:24px}
+}
+
+</style>
+  <style>
+/* agent-docs 深色主题与布局，沿用 84-git-flow-release-rehearsal.html。 */
+:root {
+  --bg: #0b0f14;
+  --bg-subtle: #0f151d;
+  --card: #121820;
+  --card-hover: #172235;
+  --border: #2a3444;
+  --border-strong: #3b4b61;
+  --text: #e8edf5;
+  --text-2: #bdc8d7;
+  --text-3: #9aa6b8;
+  --accent: #5b9dff;
+  --accent-2: #3b82f6;
+  --accent-soft: #172235;
+  --accent-ring: #376ba6;
+  --c-request: #86b8ff;
+  --c-response: #3dd68c;
+  --c-report: #f0b429;
+  --c-status: #a9b7cb;
+  --c-request-soft: #142b46;
+  --c-request-line: #315e8e;
+  --c-response-soft: #102c22;
+  --c-response-line: #27704a;
+  --c-report-soft: #392b0f;
+  --c-report-line: #8f6a1b;
+  --c-status-soft: #1a2534;
+  --c-status-line: #43536b;
+  --ok: #3dd68c;
+  --warn: #f0b429;
+  --err: #ff8991;
+  --sh-1: none;
+  --sh-2: none;
+  --maxw: 1420px;
+}
+
+body { font-size: 15px; }
+.topbar { display: none; }
+
+.wrap {
+  max-width: 1420px;
+  padding: 0 24px 72px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 0 28px;
+}
+.panel-head {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  padding: 42px 24px 34px;
+  border-bottom: 1px solid #1e2a3c;
+  background: linear-gradient(135deg, #070b10 0%, #102033 55%, #173841 100%);
+}
+.panel-head h1 { margin: 0 0 12px; font-size: 30px; line-height: 1.3; }
+.panel-head .lead { max-width: none; font-size: 15px; }
+.panel-head .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-color: #2d3a4f;
+  background: rgba(255, 255, 255, .04);
+  color: #dbe7f5;
+  font-size: 13px;
+  box-shadow: none;
+}
+.toc {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  position: sticky;
+  top: 32px;
+  align-self: start;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  margin: 32px 0 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+.toc::before {
+  content: "目录";
+  margin: 0 0 10px;
+  color: #f1f5fb;
+  font-size: 14px;
+  font-weight: 700;
+}
+.toc a { padding: 7px 8px; color: var(--text-3); font-size: 13px; line-height: 1.35; border-radius: 6px; }
+.toc a:hover, .toc a:focus, .toc a.is-active { background: #172235; color: #f5f8ff; }
+.toc nav { display: flex; flex-direction: column; gap: 2px; }
+.progress-track { flex-shrink: 0; height: 3px; margin-top: 17px; overflow: hidden; border-radius: 3px; background: var(--border); }
+.progress-fill { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+.content {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.section { margin-top: 34px; }
+.section:first-child { margin-top: 28px; }
+.section h2 {
+  margin: 34px 0 12px;
+  padding-left: 10px;
+  border-left: 4px solid #3b82f6;
+  color: #f0f4fa;
+  font-size: 20px;
+  line-height: 1.35;
+}
+.section h3 { color: #dce5f2; font-size: 16px; }
+p { margin: 8px 0 12px; }
+code {
+  padding: 1px 6px;
+  border: 1px solid #2b3648;
+  border-radius: 5px;
+  background: #0d131b;
+  color: #9ec5ff;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.grid { gap: 14px; margin: 14px 0 18px; }
+.card { padding: 14px 16px; border-radius: 8px; background: var(--card); box-shadow: none; }
+.feature-card { padding-left: 16px; }
+.feature-card::before { top: 0; bottom: 0; background: #3b82f6; }
+.note {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid #2b5c9f;
+  border-radius: 8px;
+  background: #0d1725;
+  color: var(--text);
+}
+.note.warn { border-color: #8f6a1b; background: #1e1708; }
+.note.ok { border-color: #1f7a4d; background: #0b1b15; }
+.table-card { overflow-x: auto; border-radius: 8px; background: var(--bg-subtle); box-shadow: none; }
+.table-card table { font-size: 14px; }
+th, td { padding: 10px 12px; border-color: #233044; }
+th {
+  background: #1a222e;
+  color: #f1f5fb;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+tbody tr:hover { background: #172235; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.table-card code { overflow-wrap: anywhere; }
+footer { background: var(--bg); }
+
+@media (max-width: 1120px) {
+  .wrap { display: flex; flex-direction: column; max-width: 1160px; padding: 0 24px 72px; }
+  .toc {
+    order: 0;
+    position: static;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    width: calc(100% - 48px);
+    height: auto;
+    max-height: none;
+    gap: 4px;
+    margin: 18px 24px 0;
+    padding: 16px;
+  }
+  .toc::before { margin: 0 10px 0 0; }
+  .toc nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .progress-track { display: none; }
+  .toc a { padding: 5px 8px; border: 1px solid #243041; background: #101926; }
+  .panel-head { order: 1; width: 100%; margin-top: 18px; }
+  .content { order: 2; max-width: none; }
+}
+
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px 56px; }
+  .toc { width: 100%; margin: 16px 0 0; }
+  .panel-head { padding: 30px 16px 26px; }
+  .panel-head h1 { font-size: 24px; }
+  .content { padding: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill { transition: none; }
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand"><span class="brand__logo">A</span> AI 助手 <small>AI 讨论方案</small></div>
+    <nav class="tabs" data-tabs><button class="tab-btn is-active" data-tab="main">讨论方案</button></nav>
+    <span class="ver">YYYY-MM-DD · 讨论稿</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="panel-head">
+    <div class="kicker">AI ASSISTANT · AGENT DOCS · TEMPLATE</div>
+    <h1>讨论方案标题</h1>
+    <p class="lead">在这里用一两句话说明：当前要解决什么问题、建议采用什么方案，以及本轮讨论希望明确哪些事项。</p>
+    <div class="pills"><span class="pill">AI 讨论方案</span><span class="pill">状态：待讨论</span><span class="pill">版本：0.1</span><span class="pill">日期：YYYY-MM-DD</span></div>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <nav data-toc-rail></nav>
+    <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="reading-progress"></div></div>
+  </aside>
+  <div class="content"><section class="tab-panel" data-panel="main">
+    <section class="section" data-toc="0. 方案总览" id="overview">
+      <h2>0. 方案总览</h2>
+      <p>正文必须从第 0 节开始，以图或表直观展示方案，让读者先看懂要解决什么问题、建议怎么做，以及会带来什么变化。下图是结构示例，成文时须替换为当前方案的具体内容。</p>
+      <div class="card diagram">
+        <svg viewBox="0 0 920 190" role="img" aria-label="方案总览示例：从当前问题出发，说明推荐方案及其预期变化；各节点需替换为具体方案内容">
+          <defs><marker id="template-flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--accent)"/></marker></defs>
+          <g font-family="var(--font-sans)" text-anchor="middle" fill="var(--text)">
+            <text x="150" y="30" font-size="12" font-weight="700" fill="var(--c-request)">现状</text>
+            <rect x="30" y="50" width="240" height="94" rx="12" fill="var(--c-request-soft)" stroke="var(--c-request-line)"/>
+            <text x="150" y="88" font-size="17" font-weight="700">当前问题</text>
+            <text x="150" y="117" font-size="13">谁遇到什么困难</text>
+            <text x="460" y="30" font-size="12" font-weight="700" fill="var(--c-report)">做法</text>
+            <rect x="340" y="50" width="240" height="94" rx="12" fill="var(--c-report-soft)" stroke="var(--c-report-line)"/>
+            <text x="460" y="88" font-size="17" font-weight="700">推荐方案</text>
+            <text x="460" y="117" font-size="13">改什么 · 如何协作</text>
+            <text x="770" y="30" font-size="12" font-weight="700" fill="var(--c-response)">结果</text>
+            <rect x="650" y="50" width="240" height="94" rx="12" fill="var(--c-response-soft)" stroke="var(--c-response-line)"/>
+            <text x="770" y="88" font-size="17" font-weight="700">预期变化</text>
+            <text x="770" y="117" font-size="13">带来什么改善 · 受何限制</text>
+          </g>
+          <g fill="none" stroke="var(--accent)" stroke-width="2.4" marker-end="url(#template-flow-arrow)"><path d="M271 97 H331"/><path d="M581 97 H641"/></g>
+        </svg>
+      </div>
+      <div class="note"><strong>展示要求：</strong>按内容选择流程图、关系图、前后对比表或方案对比表，必要时图表结合；使用直白的文字，说明关键关系、收益与代价，不用纯文字段落或装饰图代替方案展示。</div>
+    </section>
+
+    <section class="section" data-toc="1. 目标与边界" id="scope">
+      <h2>1. 目标与边界</h2>
+      <div class="grid cols-3">
+        <div class="card feature-card"><h3>问题与背景</h3><p>描述当前现象、影响范围和已有证据，区分已确认事实与待验证假设。</p></div>
+        <div class="card"><h3>讨论目标</h3><p>说明期望解决的问题、拟调整的范围，以及本轮需要比较的选项。</p></div>
+        <div class="card"><h3>边界与约束</h3><p>列出相关依赖、前置条件与范围限制，并注明需要进一步确认的内容。</p></div>
+      </div>
+    </section>
+
+    <section class="section" data-toc="2. 组件与排版" id="components">
+      <h2>2. 常用组件与排版</h2>
+      <div class="grid cols-2">
+        <div class="card"><span class="chip req">方案 A</span><h3>候选方案示例</h3><p>先概括方案，再说明适用条件、收益和代价。标签用于区分类型，不表示方案已经获批。</p></div>
+        <div class="card"><span class="chip res">方案 B</span><h3>另一种方案示例</h3><p>采用相同维度描述备选方案，方便读者比较。卡片数量与信息密度按内容调整。</p></div>
+      </div>
+      <div class="table-card"><table><thead><tr><th>组件</th><th>适用内容</th><th>样式或标记</th></tr></thead><tbody>
+        <tr><td>信息卡片</td><td>并列方案、目标或边界</td><td><code>grid cols-2</code> / <code>card</code></td></tr>
+        <tr><td>语义标签</td><td>区分请求、响应、上报与状态</td><td><span class="chip req">请求</span> <span class="chip res">响应</span> <span class="chip rep">上报</span> <span class="chip sta">状态</span></td></tr>
+        <tr><td>提示框</td><td>补充说明、风险与有证据的结论</td><td><code>note</code> / <code>note warn</code> / <code>note ok</code></td></tr>
+        <tr><td>流程与结构图</td><td>节点关系、数据流向和阶段划分</td><td><code>card diagram</code> + 内联 SVG</td></tr>
+        <tr><td>代码块</td><td>代码、配置或命令示例</td><td><code>codeblock</code>，自动添加复制按钮</td></tr>
+      </tbody></table></div>
+      <div class="note"><strong>补充说明示例：</strong>正文先给出判断，再解释背景与证据；路径注明相对仓库根目录或当前文件所在目录。</div>
+      <div class="note warn"><strong>待确认项示例：</strong>明确指出尚未核实的条件以及它会影响哪项讨论结论。</div>
+      <div class="note ok"><strong>结论样式示例：</strong>仅用于演示绿色提示框，实际文档需填写有证据支持的结论。</div>
+      <h3>章节标记示例</h3>
+      <pre class="codeblock">&lt;section class="section" data-toc="目录标题" id="unique-section"&gt;
+  &lt;h2&gt;章节标题&lt;/h2&gt;
+  &lt;p&gt;章节内容&lt;/p&gt;
+&lt;/section&gt;</pre>
+    </section>
+
+    <section class="section" data-toc="3. 后续讨论" id="follow-up">
+      <h2>3. 后续讨论与待确认项</h2>
+      <div class="table-card"><table><thead><tr><th>事项</th><th>需要补充的信息</th><th>对方案的影响</th></tr></thead><tbody>
+        <tr><td>确认问题范围</td><td>补充现状与复现条件，标注证据来源。</td><td>决定本次讨论涉及哪些模块与场景。</td></tr>
+        <tr><td>比较候选方案</td><td>按相同维度补充成本、收益与约束。</td><td>支持选择建议并解释取舍。</td></tr>
+        <tr><td>核对正式依据</td><td>核对相关正式文档、代码和配置。</td><td>识别讨论建议与现行要求之间的差异。</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="section" data-toc="4. 参考依据" id="references">
+      <h2>4. 参考依据</h2>
+      <p>列出当前讨论实际使用的正式文档、代码和配置，并说明它们分别支持哪项判断。下面仅保留模板来源与目录约定。</p>
+      <ul>
+        <li><a href="README.md">agent-docs 文档约定</a>：文档定位、文件格式和编号规则。</li>
+      </ul>
+    </section>
+
+    <section class="section" data-toc="附录：模板使用" id="usage">
+      <h2>附录：模板使用（成文后删除）</h2>
+      <p>复制本文件为新的讨论文档，按当前最大序号递增命名。替换页面标题、摘要、日期、版本及正文，保留第 0 节的图表总览，按需增删其他示例章节；保留内嵌样式与脚本即可独立阅读。</p>
+      <div class="note warn"><strong>文档定位：</strong>本目录中的文档是 AI 讨论方案，并非最终落地方案，不能作为实现、验收或检查依据。实际要求以项目正式文档、规则及已落地的代码和配置为准。</div>
+      <div class="note"><strong>维护方式：</strong>修改章节的 <code>data-toc</code> 可更新目录标题，<code>id</code> 用于稳定锚点。复制章节时为其设置唯一的 <code>id</code>；复制 SVG 时也需更新内部标识及引用。成文后删除本节与不需要的组件示例。</div>
+    </section>
+  </section></div>
+</main>
+
+<footer><div class="fi"><span>AI 助手 · AI 讨论方案 · 非最终落地方案</span><span>版本 0.1 · YYYY-MM-DD</span></div></footer>
+<script>
+/* 内嵌通用交互：目录与滚动高亮、阅读进度、代码复制、标签页、折叠面板。
+ * 章节使用 data-toc，目录容器使用 data-toc-rail，代码块使用 codeblock。
+ * 本文件独立运行，无外部资源依赖。 */
+(function () {
+  'use strict';
+
+  var TOPBAR_OFFSET = 90; // sticky 顶栏高度的余量,用于 scrollspy
+
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  /* ---------- 标签页 ---------- */
+  function initTabs() {
+    var bars = $all('[data-tabs]');
+    bars.forEach(function (bar) {
+      bar.addEventListener('click', function (e) {
+        var btn = e.target.closest('.tab-btn');
+        if (!btn || !bar.contains(btn)) return;
+        activateTab(bar, btn.getAttribute('data-tab'));
+      });
+    });
+    // 初始:用 hash 或第一个 is-active 决定激活面板
+    bars.forEach(function (bar) {
+      var hash = location.hash.replace('#tab-', '');
+      var initial = bar.querySelector('.tab-btn[data-tab="' + cssEsc(hash) + '"]')
+        || bar.querySelector('.tab-btn.is-active')
+        || bar.querySelector('.tab-btn');
+      if (initial) activateTab(bar, initial.getAttribute('data-tab'), true);
+    });
+  }
+
+  function activateTab(bar, key, silent) {
+    $all('.tab-btn', bar).forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-tab') === key);
+    });
+    $all('.tab-panel').forEach(function (p) {
+      if (!p.hasAttribute('data-panel')) return;
+      p.hidden = p.getAttribute('data-panel') !== key;
+    });
+    if (!silent) {
+      try { history.replaceState(null, '', '#tab-' + key); } catch (_) {}
+    }
+    buildToc(); // 切面板后重建 TOC
+  }
+
+  /* ---------- 右侧 TOC + 滚动高亮 ---------- */
+  var tocObserver = null;
+  function buildToc() {
+    var rail = document.querySelector('[data-toc-rail]');
+    if (!rail) return;
+    // 只取当前可见(未 hidden)面板里的章节;无标签页时取整个文档
+    var scope = document.querySelector('.tab-panel:not([hidden])') || document;
+    var secs = $all('[data-toc]', scope);
+    rail.innerHTML = '';
+    if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+    if (!secs.length) return;
+
+    var links = {};
+    secs.forEach(function (sec, i) {
+      if (!sec.id) sec.id = 'sec-' + i + '-' + slug(sec.getAttribute('data-toc'));
+      var a = document.createElement('a');
+      a.href = '#' + sec.id;
+      a.textContent = sec.getAttribute('data-toc');
+      a.setAttribute('data-toc-link', sec.id);
+      var level = tocLevel(sec.getAttribute('data-toc-level'));
+      if (level) a.setAttribute('data-toc-level', level);
+      rail.appendChild(a);
+      links[sec.id] = a;
+    });
+
+    tocObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        Object.keys(links).forEach(function (id) {
+          links[id].classList.toggle('is-active', id === en.target.id);
+        });
+      });
+    }, { rootMargin: '-' + TOPBAR_OFFSET + 'px 0px -65% 0px', threshold: 0 });
+    secs.forEach(function (sec) { tocObserver.observe(sec); });
+  }
+
+  /* ---------- 整页阅读进度 ---------- */
+  function initReadingProgress() {
+    var progress = document.getElementById('reading-progress');
+    if (!progress) return;
+    var queued = false;
+    function updateReading() {
+      var total = document.documentElement.scrollHeight - window.innerHeight;
+      var percent = total > 0 ? Math.max(0, Math.min(100, window.scrollY / total * 100)) : 100;
+      progress.style.width = percent + '%';
+      queued = false;
+    }
+    function scheduleReading() {
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(updateReading);
+    }
+    window.addEventListener('scroll', scheduleReading, { passive: true });
+    window.addEventListener('resize', scheduleReading);
+    window.addEventListener('pageshow', scheduleReading);
+    if (window.ResizeObserver) {
+      new ResizeObserver(scheduleReading).observe(document.body);
+    }
+    updateReading();
+  }
+
+  /* ---------- 代码块复制按钮 ---------- */
+  function initCopy() {
+    $all('.codeblock').forEach(function (block) {
+      if (block.querySelector('.copy-btn')) return;
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.textContent = '复制';
+      btn.addEventListener('click', function () {
+        var text = '';
+        Array.prototype.forEach.call(block.childNodes, function (n) {
+          if (n.nodeType === 1 && n.classList.contains('copy-btn')) return;
+          text += n.textContent;
+        });
+        copyText(text.trim()).then(function () {
+          btn.textContent = '已复制'; btn.classList.add('copied');
+          setTimeout(function () { btn.textContent = '复制'; btn.classList.remove('copied'); }, 1400);
+        });
+      });
+      block.appendChild(btn);
+    });
+  }
+
+  /* ---------- 手风琴 ---------- */
+  function initAccordion() {
+    $all('.acc').forEach(function (acc) {
+      acc.addEventListener('click', function (e) {
+        var h = e.target.closest('.acc__h');
+        if (!h || !acc.contains(h)) return;
+        var item = h.closest('.acc__item');
+        var body = item.querySelector('.acc__body');
+        var open = item.classList.toggle('open');
+        body.style.maxHeight = open ? body.scrollHeight + 'px' : '0';
+      });
+    });
+  }
+
+  /* ---------- 工具 ---------- */
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (res) {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta); res();
+    });
+  }
+  function slug(s) { return String(s || '').toLowerCase().replace(/[^\w一-龥]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24); }
+  function cssEsc(s) { return String(s).replace(/["\\]/g, '\\$&'); }
+  function tocLevel(s) {
+    var n = parseInt(s, 10);
+    if (n >= 1 && n <= 3) return String(n);
+    return '';
+  }
+
+  /* ---------- hash 深链:#tab-KEY 切到对应标签页(加载后改 hash 也生效) ---------- */
+  function wireHashNav() {
+    window.addEventListener('hashchange', function () {
+      var m = location.hash.match(/^#tab-(.+)$/);
+      if (!m) return;
+      var key = decodeURIComponent(m[1]);
+      var bar = document.querySelector('[data-tabs]');
+      if (bar && bar.querySelector('.tab-btn[data-tab="' + cssEsc(key) + '"]')) activateTab(bar, key, true);
+    });
+  }
+
+  /* ---------- 启动 ---------- */
+  function init() { initTabs(); buildToc(); initCopy(); initAccordion(); wireHashNav(); initReadingProgress(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
+</body>
+</html>

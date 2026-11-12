@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pipeline 耗时分析</title>
+    <style>
+      :root{color-scheme:light;font-family:Inter,"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;color:#243049;background:#f3f5f9;font-size:14px}*{box-sizing:border-box}body{margin:0}header{background:#14233d;color:white;padding:25px max(24px,calc((100vw - 1400px)/2));display:flex;justify-content:space-between;align-items:center;gap:20px}h1{font-size:25px;letter-spacing:.02em;margin:4px 0}header small{color:#aab9d3}header .badge{background:#283d60;color:#e8f0ff}main{max-width:1448px;margin:auto;padding:24px}h2{font-size:19px;margin:0 0 7px}h3{font-size:15px;margin:0 0 8px}p{margin:5px 0 12px;line-height:1.7}.muted,small{color:#73809a}.panel{background:#fff;border:1px solid #e2e7ef;border-radius:14px;padding:23px;margin-bottom:20px;box-shadow:0 3px 14px #20365504}.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.filters label{display:flex;flex-direction:column;gap:6px;color:#64718a;font-size:12px}select,input,button{font:inherit;border:1px solid #d6dfeb;border-radius:7px;padding:9px 11px;background:white;color:inherit;min-height:38px}input[type=date]{max-width:160px}button{cursor:pointer}button:hover{border-color:#3769dc}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #ffbe55;outline-offset:3px}.primary{background:#3366d6;color:white;border-color:#3366d6}a{color:#285cc7;text-decoration:none}a:hover{text-decoration:underline}.badge{display:inline-block;border-radius:5px;padding:4px 7px;font-size:12px;background:#edf2ff;color:#3b61a8}.badge.warn{color:#9a6713;background:#fff4da}.badge.fail{background:#ffedef;color:#b44350}.meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 0}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}.kpi{background:#fff;border:1px solid #e2e7ef;padding:19px 22px;border-radius:12px}.kpi strong{font-size:25px;display:block;margin:8px 0 3px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}.workspace .panel{min-width:0}.section-head{display:flex;justify-content:space-between;align-items:start;gap:15px}.chart-list{margin:18px 0 10px}.bar-row{display:grid;grid-template-columns:minmax(130px,38%) 1fr 90px;align-items:center;gap:12px;width:100%;border:0;border-radius:7px;padding:12px 8px;min-height:55px;text-align:left;background:transparent}.bar-row:hover{background:#f4f7ff}.bar-row.selected{background:#eef3ff;box-shadow:inset 3px 0 #3567d6}.bar-name{overflow-wrap:anywhere;line-height:1.4;font-size:13px}.bar-name small{display:block;margin-top:4px;font-size:11px}.track{height:16px;background:#f1f4fa;border-radius:4px;overflow:hidden}.fill{height:100%;background:#5b83df;border-radius:4px}.job-fill{background:#53a5aa}.bar-number{text-align:right;font-size:13px;white-space:nowrap}.bar-number small{display:block;font-size:11px;margin-top:4px}.chart-scale{display:flex;justify-content:space-between;color:#8a96aa;font-size:11px;margin-left:40%;padding:0 100px 0 6px}.empty{padding:35px 15px;text-align:center;color:#7d8ba2;border:1px dashed #d6dfeb;border-radius:9px;margin-top:15px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:15px 0}.toolbar input{min-width:0;max-width:240px}.trend{width:100%;height:220px;display:block;overflow:visible}.trend text{font-size:11px;fill:#8491a6}.trend circle{cursor:pointer}.trend circle:hover{r:6}.grid{stroke:#e9edf4;stroke-width:1}.line{fill:none;stroke:#4678da;stroke-width:2.5}.job-line{stroke:#399ca4}.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#75839b}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4678da;margin-right:5px}.dot.job{background:#399ca4}details>summary{cursor:pointer;font-weight:600;padding:5px 0}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px}th{text-align:left;color:#77849b;font-weight:500;background:#f7f9fc}th,td{padding:12px 10px;border-bottom:1px solid #e9edf4;white-space:nowrap}tr:hover td{background:#fafbfe}.pager{display:flex;gap:10px;align-items:center;justify-content:end;margin-top:15px}.error{color:#b63049;background:#fff0f2;padding:16px;border-radius:10px;margin-bottom:18px}.notice{color:#60708a;font-size:12px;line-height:1.6}.hide,[hidden]{display:none!important}dialog{border:1px solid #d8e0ee;border-radius:14px;max-width:920px;width:calc(100% - 36px);max-height:85vh;padding:25px;color:#26334b}dialog::backdrop{background:#12203966}.close{float:right}.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.detail-grid>div{background:#f5f7fb;padding:14px;border-radius:8px}.detail-grid strong{display:block;font-size:19px;margin-top:7px}footer{font-size:12px;line-height:1.8;color:#77859b;margin:20px 4px}#busy{color:#526f9d;font-size:13px}#selection{font-size:13px;font-weight:500;color:#5671a8;margin-top:8px;overflow-wrap:anywhere}@media(max-width:1000px){.workspace{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){main{padding:12px}header{padding:20px;align-items:start;flex-direction:column;gap:8px}.panel{padding:16px}.kpis{gap:10px}.kpi{padding:15px}.kpi strong{font-size:21px}.filters label{flex:1;min-width:130px}.filters select{max-width:100%;width:100%}.bar-row{grid-template-columns:minmax(95px,38%) 1fr 72px;gap:7px;padding:10px 5px}.bar-number{font-size:11px}.chart-scale{padding-right:80px}.detail-grid{grid-template-columns:1fr 1fr}.section-head{flex-wrap:wrap}h1{font-size:23px}}
+
+      .execution-timeline{max-width:100%;overflow-x:auto;margin:14px 0;border:1px solid #dce4ed;border-radius:8px}
+      .tl-grid{min-width:700px;padding:12px}
+      .tl-row{display:grid;grid-template-columns:220px minmax(300px,1fr) 95px;gap:10px;align-items:center;min-height:25.2px}
+      .tl-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+      button.tl-name{border:0;background:none;color:#1d4ed8;padding:3px 0;min-height:0;font:inherit;cursor:pointer}
+      button.tl-name:hover{text-decoration:underline}button.tl-name:focus-visible{outline:2px solid #3478e5}
+      .tl-job .tl-name{padding-left:8px;font-size:12px}.tl-job{background:#f8fafc}
+      .tl-track{position:relative;height:25.2px;background:repeating-linear-gradient(to right,#e5eaf0 0px,#e5eaf0 1px,transparent 1px,transparent 25%)}
+      .tl-bar{position:absolute;top:7px;height:10px;min-width:2px;border-radius:2px;background:#3478e5}
+      .tl-bar.failed{outline:2px solid #dc2626}.tl-time{font-size:12px;color:#475569;white-space:nowrap}
+      .tl-axis{display:flex;justify-content:space-between;font-size:11px;color:#64748b}.tl-unknown{font-size:11px;color:#64748b;padding-left:5px}
+      .tl-row.selected{background:#eef3ff;box-shadow:inset 3px 0 #3567d6}.tl-row.selected .tl-name{padding-left:8px}
+      .tl-caption{text-align:center;font-size:12px;color:#64748b;margin:4px 0 0}
+      .stage-overview,.selected-jobs{margin:24px 0}.selected-jobs h3{overflow-wrap:anywhere}
+      .selected-jobs .toolbar label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%}
+      #detail-stage{max-width:100%;min-width:0}.stage-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.stage-stats strong{font-size:16px}
+      .job-detail-list{padding:8px 12px;border:1px solid #e2e7ef;border-radius:8px}.job-detail-list td:first-child{white-space:normal;min-width:170px;overflow-wrap:anywhere}
+      @media(max-width:560px){.stage-stats{grid-template-columns:repeat(2,minmax(0,1fr))}dialog{padding:16px}.selected-jobs .toolbar label{width:100%}}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <small>CI PERFORMANCE · PIPELINE ANALYTICS</small>
+        <h1>Pipeline 平均耗时分析</h1>
+        <small>先看 Pipeline 和 Job 的平均耗时，再下钻单次执行。</small>
+      </div>
+      <span class="badge" id="task-state">报告加载中</span>
+    </header>
+    <main>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section class="panel">
+        <div class="filters">
+          <label>监控仓库<select id="task"></select></label
+          ><label
+            >时间范围<select id="period">
+              <option value="7">近 7 天</option>
+              <option value="30" selected>近 30 天</option>
+              <option value="90">近 90 天</option>
+              <option value="all">全部历史</option>
+              <option value="custom">自定义</option>
+            </select></label
+          ><label>开始日期<input type="date" id="start" /></label
+          ><label>结束日期<input type="date" id="end" /></label>
+          <label
+            >执行结果<select id="status">
+              <option value="success">成功执行</option>
+              <option value="failed">失败执行</option>
+            </select></label
+          >
+          <label
+            >执行类型<select id="kind">
+              <option value="initial">首次执行</option>
+              <option value="partial_retry">重试执行</option>
+              <option value="">分别展示全部</option>
+            </select></label
+          >
+          <label
+            >分支 / Tag<select id="branch">
+              <option value="">全部分支 / Tag</option>
+            </select></label
+          ><label
+            >触发类型<select id="source">
+              <option value="">全部触发类型</option>
+            </select></label
+          ><label id="reason-label" hidden
+            >失败原因<select id="reason">
+              <option value="">全部原因</option>
+            </select></label
+          >
+          <label
+            >耗时告警<select id="alert">
+              <option value="">全部执行</option>
+              <option value="any">有告警</option>
+              <option value="执行超时">执行超时</option>
+              <option value="排队超时">排队超时</option>
+              <option value="明显变慢">明显变慢</option>
+            </select></label
+          >
+          <button id="apply" class="primary">更新图表</button>
+        </div>
+        <div class="meta">
+          <span class="badge">成功与失败分开统计</span
+          ><span class="badge">按分支＋触发类型比较</span
+          ><span id="updated" class="notice"></span
+          ><span id="busy" aria-live="polite"></span>
+        </div>
+      </section>
+      <div id="content" hidden>
+        <div class="kpis">
+          <div class="kpi">
+            <small>当前筛选的执行记录</small><strong id="runs">—</strong
+            ><small id="sample-note"></small>
+          </div>
+          <div class="kpi">
+            <small>可比较的 Pipeline 分组</small
+            ><strong id="group-count">—</strong
+            ><small>分支、触发类型及可比版本</small>
+          </div>
+          <div class="kpi">
+            <small>平均执行最慢的分组</small><strong id="slowest">—</strong
+            ><small id="slowest-name"></small>
+          </div>
+          <div class="kpi">
+            <small>所选分组的平均执行耗时</small
+            ><strong id="selected-mean">—</strong
+            ><small id="selected-samples"></small>
+          </div>
+        </div>
+        <div class="workspace">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <h2>Pipeline 平均耗时</h2>
+                <p class="muted">比较分组，点击条形查看内部 Job。</p>
+              </div>
+              <select id="pipeline-metric" aria-label="Pipeline 统计指标">
+                <option value="active_seconds">有效执行耗时</option>
+                <option value="elapsed_seconds">完整历时</option>
+                <option value="pipeline_queue">GitLab 排队</option>
+              </select>
+            </div>
+            <div id="pipelines" class="chart-list"></div>
+            <div class="chart-scale">
+              <span>0</span><span id="pipeline-max"></span>
+            </div>
+            <div class="pager">
+              <button id="group-prev">上一页</button
+              ><small id="group-page"></small
+              ><button id="group-next">下一页</button>
+            </div>
+            <p class="notice">
+              条形表示算术平均值；n 为有效时长样本数。缺失时长不按 0 计算。
+            </p>
+          </section>
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <h2>Job 平均耗时</h2>
+                <p class="muted">找出最耗时的具体任务。</p>
+              </div>
+              <select id="job-metric" aria-label="Job 统计指标">
+                <option value="duration">执行耗时</option>
+                <option value="queued_duration">排队耗时</option>
+              </select>
+            </div>
+            <div id="selection"></div>
+            <div class="toolbar">
+              <input
+                id="job-search"
+                placeholder="搜索 Job 名称"
+                aria-label="搜索 Job"
+              /><select id="stage" aria-label="阶段">
+                <option value="">全部阶段</option></select
+              ><button id="clear-job" hidden>取消 Job 选择</button>
+            </div>
+            <div id="jobs" class="chart-list"></div>
+            <div class="chart-scale">
+              <span>0</span><span id="job-max"></span>
+            </div>
+            <div class="pager">
+              <button id="job-prev">上一页</button><small id="job-page"></small
+              ><button id="job-next">下一页</button>
+            </div>
+            <p class="notice">
+              点击 Job 查看每日平均变化；同名任务按阶段、项目和状态区分。Job
+              并行执行，平均值不能相加当作 Pipeline 耗时。
+            </p>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <h2>平均耗时如何变化</h2>
+              <p class="muted" id="trend-description"></p>
+            </div>
+            <div class="legend">
+              <span
+                ><i class="dot"></i
+                ><span id="pipeline-legend">所选 Pipeline</span></span
+              ><span id="job-legend" hidden
+                ><i class="dot job"></i
+                ><span id="job-legend-label">所选 Job</span></span
+              >
+            </div>
+          </div>
+          <div id="trend"></div>
+          <p class="notice">
+            按 <span data-timezone>配置时区</span> 日期汇总；无有效样本的日期留空，不连成
+            0。鼠标悬停或点选圆点查看平均值与样本数。
+          </p>
+          <p id="trend-point" aria-live="polite"></p>
+        </section>
+        <section class="panel">
+          <details id="executions">
+            <summary>
+              查看单次执行记录 <span id="execution-count" class="badge"></span>
+            </summary>
+            <p class="muted">
+              仅列出当前选中的 Pipeline 分组。点击“详情”查看该次
+              Job、失败原因及告警。
+            </p>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Pipeline</th>
+                    <th>完成时间（<span data-timezone>配置时区</span>）</th>
+                    <th>有效执行</th>
+                    <th>完整历时</th>
+                    <th>排队</th>
+                    <th>状态</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="records"></tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <button id="record-prev">上一页</button
+              ><small id="record-page"></small
+              ><button id="record-next">下一页</button>
+            </div>
+          </details>
+        </section>
+        <footer>
+          <details>
+            <summary>统计口径与数据说明</summary>
+            <p>
+              平均值 = 有效时长总和 ÷
+              有效样本数。成功与失败分别统计，默认查看成功的首次执行；重试可单独切换。分支＋触发类型为主分组，Tag、执行类型、配置版本和算法版本不同的记录继续拆分，避免混算。MR
+              使用目标分支。
+            </p>
+            <p>
+              Pipeline 有效执行耗时为 Job 运行区间的并集；完整历时为首个 Job
+              开始至最后结束。Job 平均耗时按项目＋阶段＋完整名称＋Job
+              状态统计实际执行样本，同一 Job ID
+              不重复计数，不混入无法还原轮次的历史尝试。非阻塞失败 Job
+              仍明确标为失败。
+            </p>
+            <p>
+              阶段或版本变化会影响样本可比性。样本少于 5
+              的条形标注“小样本”，统计仅供参考；不据此改变监控告警阈值。页面来自最近一次成功发布，采集缺口仍可能在等待补全。
+            </p>
+          </details>
+        </footer>
+      </div>
+      <div id="empty-site" class="empty" hidden>暂无监控报告。</div>
+    </main>
+    <dialog id="detail">
+      <button class="close" id="close-detail">关闭</button>
+      <h2 id="detail-title"></h2>
+      <div id="detail-body"></div>
+    </dialog>
+    <script>
+      const TASK_ID = /*TASK_ID*/ null;
+      /*ANALYTICS*/
+      /*TIMELINE*/
+      /*DASHBOARD*/
+    </script>
+  </body>
+</html>

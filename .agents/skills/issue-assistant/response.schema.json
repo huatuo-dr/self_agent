@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "properties": {
+    "reply": {"type": "string"},
+    "issue_refs": {"type": "array", "items": {"type": "string"}},
+    "notification": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "properties": {
+            "body": {"type": "string"},
+            "trigger": {
+              "anyOf": [
+                {"type": "null"},
+                {"type": "object", "properties": {
+                  "kind": {"type": "string", "enum": ["gitlab_pipeline"]},
+                  "url": {"type": "string"}
+                }, "required": ["kind", "url"], "additionalProperties": false}
+              ]
+            },
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "gitlab_id": {"type": ["integer", "null"]},
+                  "name": {"type": "string"},
+                  "email": {"type": "string"},
+                  "address_as": {
+                    "type": "string",
+                    "description": "主人在当前任务对话中对该收件人最近使用或指定的称呼，例如磊哥；只填称呼本身，没有则填空字符串，交由服务采用飞书显示名。用于称呼，不替代收件人身份核验。"
+                  }
+                },
+                "required": ["gitlab_id", "name", "email", "address_as"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["body", "recipients", "trigger"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": ["reply", "issue_refs", "notification"],
+  "additionalProperties": false
+}

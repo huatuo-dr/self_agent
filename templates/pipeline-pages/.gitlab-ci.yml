@@ -1,0 +1,36 @@
+# GitLab 18.0+; project administrators provide Runner and Pages permissions.
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+variables:
+  PYTHON_IMAGE: python:3.12-slim
+default:
+  image: $PYTHON_IMAGE
+  # Configure tags here if your Runner does not accept untagged jobs.
+stages: [test, deploy]
+analytics_tests:
+  stage: test
+  image: node:22-alpine
+  script:
+    - node --test tests/analytics.test.cjs
+pages:
+  stage: deploy
+  timeout: 10 minutes
+  resource_group: pipeline-pages
+  interruptible: false
+  variables:
+    GIT_DEPTH: "0"
+  script:
+    - python3 scripts/check_revision.py
+    - python3 -m unittest discover -s tests
+    - python3 scripts/build.py
+    - python3 scripts/check_revision.py
+  pages:
+    publish: public
+    expire_in: never
+  artifacts:
+    paths: [public]
+  environment:
+    name: pipeline-pages
+    url: $CI_PAGES_URL
